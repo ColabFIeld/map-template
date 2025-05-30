@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>マップ表示（スプレッドシート連携）</title>
+    <title>マップ表示（GAS連携）</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       rel="stylesheet"
@@ -14,51 +14,63 @@
         height: 100vh;
         width: 100%;
       }
+      .leaflet-popup-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+        margin-top: 4px;
+      }
     </style>
   </head>
   <body>
     <div id="map"></div>
 
     <script>
-      const map = L.map('map').setView([35.681236, 139.767125], 5); // 初期表示（東京駅付近）
+      const map = L.map('map').setView([35.681236, 139.767125], 5); // 初期表示（東京駅）
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-      const sheetURL = `https://script.google.com/macros/s/AKfycbykltH76PRVM_BKeYkbMUka1bGKIJc1G4rMfOr3HRVn-_lT2vIrrPk1eQehZNyhDmbc/exec`;
+      // GASから取得するJSONのURL
+      const sheetJsonUrl = 'https://script.google.com/macros/s/AKfycbykltH76PRVM_BKeYkbMUka1bGKIJc1G4rMfOr3HRVn-_lT2vIrrPk1eQehZNyhDmbc/exec';
 
-      fetch(sheetURL)
-        .then((response) => response.json())
-        .then((data) => {
-          const entries = data.feed.entry;
+      fetch(sheetJsonUrl)
+        .then((res) => res.json())
+        .then((entries) => {
           entries.forEach((entry) => {
-            const title = entry['gsx$タイトル']?.['$t'] ?? 'No title';
-            const sample = entry['gsx$採取環境']?.['$t'] ?? '';
-            const lat = parseFloat(entry['gsx$緯度']?.['$t']);
-            const lng = parseFloat(entry['gsx$経度']?.['$t']);
-            const memo = entry['gsx$メモ']?.['$t'] ?? '';
-            const tags = entry['gsx$ハッシュタグ']?.['$t'] ?? '';
-            const imageUrl = entry['gsx$写真']?.['$t'];
-　　　　
-            const popupContent = `
-              <b>${title}</b><br>
-              ${memo}<br>
-              <i>${author}</i><br>
-              <small>${tags}</small><br>
-              ${imageUrl ? `
-                <a href="${imageUrl}" target="_blank">
-                  <img src="${imageUrl}" width="100" style="margin-top:4px;border-radius:4px;" />
-                </a>
-              ` : ''}
-            `;
+            const title = entry["タイトル"] || "タイトルなし";
+            const env = entry["採取環境"] || "";
+            const lat = parseFloat(entry["緯度"]);
+            const lng = parseFloat(entry["経度"]);
+            const memo = entry["メモ"] || "";
+            const tags = entry["ハッシュタグ"] || "";
+            const photo = entry["写真"] || "";
 
-            L.marker([lat, lng])
-              .addTo(map)
-              .bindPopup(popupContent);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              const popupContent = `
+                <b>${title}</b><br>
+                ${env}<br>
+                ${memo}<br>
+                <small>${tags}</small><br>
+                ${
+                  photo
+                    ? `<a href="${photo}" target="_blank">
+                         <img src="${photo}" width="100" />
+                       </a>`
+                    : ''
+                }
+              `;
+
+              L.marker([lat, lng])
+                .addTo(map)
+                .bindPopup(popupContent);
             }
           });
+        })
+        .catch((err) => {
+          console.error('データ取得に失敗しました:', err);
         });
     </script>
   </body>
