@@ -1,11 +1,55 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>テスト地図</title>
-</head>
-<body>
-  <h1>ここに地図が表示される予定です🗺️</h1>
-</body>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>マップ表示（スプレッドシート連携）</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <style>
+      #map {
+        height: 100vh;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <script>
+      const map = L.map('map').setView([35.681236, 139.767125], 5); // 初期表示（東京駅付近）
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      const sheetID = 'https://spreadsheets.google.com/feeds/list/14BvZ-FCGlQ2sPR4IwKTipFmo8IHGGVddeSlstyMGyag/1/public/values?alt=json';
+      const sheetURL = `https://spreadsheets.google.com/feeds/list/${sheetID}/1/public/values?alt=json`;
+
+      fetch(sheetURL)
+        .then((response) => response.json())
+        .then((data) => {
+          const entries = data.feed.entry;
+          entries.forEach((entry) => {
+            const title = entry['gsx$タイトル']?.['$t'] ?? 'No title';
+            const sample = entry['gsx$採取環境']?.['$t'] ?? '';
+            const lat = parseFloat(entry['gsx$緯度']?.['$t']);
+            const lng = parseFloat(entry['gsx$経度']?.['$t']);
+            const memo = entry['gsx$メモ']?.['$t'] ?? '';
+            const tags = entry['gsx$ハッシュタグ']?.['$t'] ?? '';
+            const imageUrl = entry['gsx$写真']?.['$t'];
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+              L.marker([lat, lng])
+                .addTo(map)
+                .bindPopup(`<b>${title}</b><br>${memo}`);
+            }
+          });
+        });
+    </script>
+  </body>
 </html>
