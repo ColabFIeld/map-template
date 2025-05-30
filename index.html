@@ -42,11 +42,22 @@
             const memo = entry['gsx$メモ']?.['$t'] ?? '';
             const tags = entry['gsx$ハッシュタグ']?.['$t'] ?? '';
             const imageUrl = entry['gsx$写真']?.['$t'];
+　　　　
+            const popupContent = `
+              <b>${title}</b><br>
+              ${memo}<br>
+              <i>${author}</i><br>
+              <small>${tags}</small><br>
+              ${imageUrl ? `
+                <a href="${imageUrl}" target="_blank">
+                  <img src="${imageUrl}" width="100" style="margin-top:4px;border-radius:4px;" />
+                </a>
+              ` : ''}
+            `;
 
-            if (!isNaN(lat) && !isNaN(lng)) {
-              L.marker([lat, lng])
-                .addTo(map)
-                .bindPopup(`<b>${title}</b><br>${memo}`);
+            L.marker([lat, lng])
+              .addTo(map)
+              .bindPopup(popupContent);
             }
           });
         });
