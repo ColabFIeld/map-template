@@ -27,8 +27,7 @@
           '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-      const sheetID = '14BvZ-FCGlQ2sPR4IwKTipFmo8IHGGVddeSlstyMGyag';
-      const sheetURL = `https://spreadsheets.google.com/feeds/list/14BvZ-FCGlQ2sPR4IwKTipFmo8IHGGVddeSlstyMGyag/1/public/values?alt=json`;
+      const sheetURL = `https://script.google.com/macros/s/AKfycbykltH76PRVM_BKeYkbMUka1bGKIJc1G4rMfOr3HRVn-_lT2vIrrPk1eQehZNyhDmbc/exec`;
 
       fetch(sheetURL)
         .then((response) => response.json())
